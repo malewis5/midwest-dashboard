@@ -1,42 +1,109 @@
-import React, { useState } from 'react';
-import { Download, CheckSquare, Square, Loader2 } from 'lucide-react';
-import { supabase } from './lib/supabase';
-import Papa from 'papaparse';
+import { useState } from "react";
+import { Download, CheckSquare, Square, Loader2 } from "lucide-react";
+import { supabase } from "./lib/supabase";
+import Papa from "papaparse";
 
 interface Field {
   key: string;
   label: string;
-  category: 'customer' | 'address' | 'contact' | 'sales' | 'location';
+  category: "customer" | "address" | "contact" | "sales" | "location";
   path: string[];
 }
 
 const AVAILABLE_FIELDS: Field[] = [
   // Customer fields
-  { key: 'customer_name', label: 'Customer Name', category: 'customer', path: ['customer_name'] },
-  { key: 'account_number', label: 'Account Number', category: 'customer', path: ['account_number'] },
-  
+  {
+    key: "customer_name",
+    label: "Customer Name",
+    category: "customer",
+    path: ["customer_name"],
+  },
+  {
+    key: "account_number",
+    label: "Account Number",
+    category: "customer",
+    path: ["account_number"],
+  },
+
   // Address fields
-  { key: 'street', label: 'Street Address', category: 'address', path: ['addresses', 0, 'street'] },
-  { key: 'city', label: 'City', category: 'address', path: ['addresses', 0, 'city'] },
-  { key: 'state', label: 'State', category: 'address', path: ['addresses', 0, 'state'] },
-  { key: 'zip_code', label: 'ZIP Code', category: 'address', path: ['addresses', 0, 'zip_code'] },
-  
+  {
+    key: "street",
+    label: "Street Address",
+    category: "address",
+    path: ["addresses", 0, "street"],
+  },
+  {
+    key: "city",
+    label: "City",
+    category: "address",
+    path: ["addresses", 0, "city"],
+  },
+  {
+    key: "state",
+    label: "State",
+    category: "address",
+    path: ["addresses", 0, "state"],
+  },
+  {
+    key: "zip_code",
+    label: "ZIP Code",
+    category: "address",
+    path: ["addresses", 0, "zip_code"],
+  },
+
   // Location fields
-  { key: 'latitude', label: 'Latitude', category: 'location', path: ['addresses', 0, 'geocoded_location', 'latitude'] },
-  { key: 'longitude', label: 'Longitude', category: 'location', path: ['addresses', 0, 'geocoded_location', 'longitude'] },
-  
+  {
+    key: "latitude",
+    label: "Latitude",
+    category: "location",
+    path: ["addresses", 0, "geocoded_location", "latitude"],
+  },
+  {
+    key: "longitude",
+    label: "Longitude",
+    category: "location",
+    path: ["addresses", 0, "geocoded_location", "longitude"],
+  },
+
   // Contact fields
-  { key: 'contact_name', label: 'Contact Name', category: 'contact', path: ['contacts', 0, 'contact_name'] },
-  { key: 'role', label: 'Contact Role', category: 'contact', path: ['contacts', 0, 'role'] },
-  { key: 'phone_number', label: 'Phone Number', category: 'contact', path: ['contacts', 0, 'phone_number'] },
-  { key: 'email', label: 'Email', category: 'contact', path: ['contacts', 0, 'email'] },
-  
+  {
+    key: "contact_name",
+    label: "Contact Name",
+    category: "contact",
+    path: ["contacts", 0, "contact_name"],
+  },
+  {
+    key: "role",
+    label: "Contact Role",
+    category: "contact",
+    path: ["contacts", 0, "role"],
+  },
+  {
+    key: "phone_number",
+    label: "Phone Number",
+    category: "contact",
+    path: ["contacts", 0, "phone_number"],
+  },
+  {
+    key: "email",
+    label: "Email",
+    category: "contact",
+    path: ["contacts", 0, "email"],
+  },
+
   // Sales fields
-  { key: 'total_sales', label: 'Total Sales', category: 'sales', path: ['sales'] },
+  {
+    key: "total_sales",
+    label: "Total Sales",
+    category: "sales",
+    path: ["sales"],
+  },
 ];
 
 function ExportData() {
-  const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set(['customer_name', 'account_number']));
+  const [selectedFields, setSelectedFields] = useState<Set<string>>(
+    new Set(["customer_name", "account_number"])
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +118,7 @@ function ExportData() {
   };
 
   const selectAllFields = () => {
-    setSelectedFields(new Set(AVAILABLE_FIELDS.map(field => field.key)));
+    setSelectedFields(new Set(AVAILABLE_FIELDS.map((field) => field.key)));
   };
 
   const clearSelection = () => {
@@ -63,30 +130,38 @@ function ExportData() {
       let current = obj;
       for (const key of path) {
         if (Array.isArray(current) && key === 0 && current.length === 0) {
-          return '';
+          return "";
         }
-        if (key === 'sales') {
+        if (key === "sales") {
           // Calculate total sales
-          return current[key].reduce((sum: number, sale: any) => sum + (sale.sales_amount || 0), 0).toFixed(2);
+          return current[key]
+            .reduce(
+              (sum: number, sale: any) => sum + (sale.sales_amount || 0),
+              0
+            )
+            .toFixed(2);
         }
         if (current === undefined || current === null) {
-          return '';
+          return "";
         }
         current = current[key];
       }
       // Format decimal numbers to 6 decimal places for coordinates
-      if (typeof current === 'number' && (path.includes('latitude') || path.includes('longitude'))) {
+      if (
+        typeof current === "number" &&
+        (path.includes("latitude") || path.includes("longitude"))
+      ) {
         return current.toFixed(6);
       }
-      return current || '';
+      return current || "";
     } catch (error) {
-      return '';
+      return "";
     }
   };
 
   const exportData = async () => {
     if (selectedFields.size === 0) {
-      setError('Please select at least one field to export');
+      setError("Please select at least one field to export");
       return;
     }
 
@@ -94,8 +169,7 @@ function ExportData() {
     setError(null);
 
     try {
-      const { data: customers, error } = await supabase
-        .from('customers')
+      const { data: customers, error } = await supabase.from("customers")
         .select(`
           customer_name,
           account_number,
@@ -122,27 +196,36 @@ function ExportData() {
 
       if (error) throw error;
 
-      const selectedFieldsList = AVAILABLE_FIELDS.filter(field => selectedFields.has(field.key));
-      
-      const csvData = customers.map(customer => {
+      const selectedFieldsList = AVAILABLE_FIELDS.filter((field) =>
+        selectedFields.has(field.key)
+      );
+
+      const csvData = customers.map((customer) => {
         const row: Record<string, string> = {};
-        selectedFieldsList.forEach(field => {
+        selectedFieldsList.forEach((field) => {
           row[field.label] = getNestedValue(customer, field.path);
         });
         return row;
       });
 
       const csv = Papa.unparse(csvData);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `customer_data_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `customer_data_${new Date().toISOString().split("T")[0]}.csv`
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while exporting data');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while exporting data"
+      );
     } finally {
       setLoading(false);
     }
@@ -174,11 +257,17 @@ function ExportData() {
 
         {/* Field Categories */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          {(['customer', 'address', 'location', 'contact', 'sales'] as const).map(category => (
+          {(
+            ["customer", "address", "location", "contact", "sales"] as const
+          ).map((category) => (
             <div key={category} className="space-y-3">
-              <h3 className="font-semibold text-gray-700 capitalize">{category} Information</h3>
+              <h3 className="font-semibold text-gray-700 capitalize">
+                {category} Information
+              </h3>
               <div className="space-y-2">
-                {AVAILABLE_FIELDS.filter(field => field.category === category).map(field => (
+                {AVAILABLE_FIELDS.filter(
+                  (field) => field.category === category
+                ).map((field) => (
                   <div
                     key={field.key}
                     className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
@@ -211,9 +300,10 @@ function ExportData() {
           className={`
             w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-white
             flex items-center justify-center gap-2
-            ${loading || selectedFields.size === 0
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
+            ${
+              loading || selectedFields.size === 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
             }
           `}
         >

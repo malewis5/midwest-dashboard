@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
-import { X, Save } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { supabase } from '../../lib/supabase';
+import { useEffect } from "react";
+import { X, Save } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "../../lib/supabase";
 
 const noteSchema = z.object({
-  content: z.string().min(1, 'Note content is required')
+  content: z.string().min(1, "Note content is required"),
 });
 
 type NoteFormData = z.infer<typeof noteSchema>;
@@ -22,15 +22,26 @@ interface NoteModalProps {
   onSuccess: () => void;
 }
 
-function NoteModal({ isOpen, onClose, customerId, existingNote, onSuccess }: NoteModalProps) {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<NoteFormData>({
-    resolver: zodResolver(noteSchema)
+function NoteModal({
+  isOpen,
+  onClose,
+  customerId,
+  existingNote,
+  onSuccess,
+}: NoteModalProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<NoteFormData>({
+    resolver: zodResolver(noteSchema),
   });
 
   useEffect(() => {
     if (isOpen) {
       reset({
-        content: existingNote?.content || ''
+        content: existingNote?.content || "",
       });
     }
   }, [isOpen, existingNote, reset]);
@@ -39,20 +50,22 @@ function NoteModal({ isOpen, onClose, customerId, existingNote, onSuccess }: Not
     try {
       if (existingNote) {
         const { error: updateError } = await supabase
-          .from('customer_notes')
+          .from("customer_notes")
           .update({
-            content: data.content
+            content: data.content,
           })
-          .eq('note_id', existingNote.note_id);
+          .eq("note_id", existingNote.note_id);
 
         if (updateError) throw updateError;
       } else {
         const { error: insertError } = await supabase
-          .from('customer_notes')
-          .insert([{
-            customer_id: customerId,
-            content: data.content
-          }]);
+          .from("customer_notes")
+          .insert([
+            {
+              customer_id: customerId,
+              content: data.content,
+            },
+          ]);
 
         if (insertError) throw insertError;
       }
@@ -60,8 +73,8 @@ function NoteModal({ isOpen, onClose, customerId, existingNote, onSuccess }: Not
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Error saving note:', error);
-      alert('Failed to save note. Please try again.');
+      console.error("Error saving note:", error);
+      alert("Failed to save note. Please try again.");
     }
   };
 
@@ -73,7 +86,7 @@ function NoteModal({ isOpen, onClose, customerId, existingNote, onSuccess }: Not
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">
-            {existingNote ? 'Edit Note' : 'Add New Note'}
+            {existingNote ? "Edit Note" : "Add New Note"}
           </h2>
           <button
             onClick={onClose}
@@ -86,20 +99,25 @@ function NoteModal({ isOpen, onClose, customerId, existingNote, onSuccess }: Not
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
           <div className="space-y-2">
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="content"
+              className="block text-sm font-medium text-gray-700"
+            >
               Note Content
             </label>
             <textarea
               id="content"
               rows={4}
-              {...register('content')}
+              {...register("content")}
               className={`block w-full rounded-lg border ${
-                errors.content ? 'border-red-300' : 'border-gray-300'
+                errors.content ? "border-red-300" : "border-gray-300"
               } px-4 py-3 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors`}
               placeholder="Enter note content..."
             />
             {errors.content && (
-              <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.content.message}
+              </p>
             )}
           </div>
 
@@ -118,7 +136,7 @@ function NoteModal({ isOpen, onClose, customerId, existingNote, onSuccess }: Not
               className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors inline-flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              {isSubmitting ? 'Saving...' : 'Save Note'}
+              {isSubmitting ? "Saving..." : "Save Note"}
             </button>
           </div>
         </form>
