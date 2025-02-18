@@ -1,21 +1,29 @@
-import React from 'react';
-import { useJsApiLoader } from '@react-google-maps/api';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import React from "react";
+import { useJsApiLoader } from "@react-google-maps/api";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
-const libraries: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ["places", "geometry"];
+const libraries: (
+  | "places"
+  | "drawing"
+  | "geometry"
+  | "localContext"
+  | "visualization"
+)[] = ["places", "geometry"];
 
 interface GoogleMapsLoaderProps {
   children: React.ReactNode;
 }
 
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
 function GoogleMapsLoader({ children }: GoogleMapsLoaderProps) {
   const { isLoaded, loadError } = useJsApiLoader({
-    id: 'territory-management-map',
-    googleMapsApiKey: "AIzaSyDL79ATDf2QAmPouvwdO-rYM6CBkxf-76w",
+    id: "territory-management-map",
+    googleMapsApiKey: apiKey,
     libraries,
     version: "weekly",
     language: "en",
-    region: "US"
+    region: "US",
   });
 
   if (loadError) {
@@ -25,7 +33,9 @@ function GoogleMapsLoader({ children }: GoogleMapsLoaderProps) {
           <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-2" />
           <div className="text-red-600">
             Failed to load Google Maps
-            <p className="mt-2 text-sm">Please refresh the page and try again.</p>
+            <p className="mt-2 text-sm">
+              Please refresh the page and try again.
+            </p>
           </div>
         </div>
       </div>
