@@ -1,14 +1,16 @@
-import { initializeApp } from 'firebase/app';
-import { getStorage } from 'firebase/storage';
+import { initializeApp } from "firebase/app";
+import { getStorage } from "firebase/storage";
+
+const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAW3pl1n1wzImaxKi_4kvzYG2XV6PcQVYo",
+  apiKey: apiKey,
   authDomain: "midwestimages-8b254.firebaseapp.com",
   projectId: "midwestimages-8b254",
   storageBucket: "midwestimages-8b254.firebasestorage.app",
   messagingSenderId: "447326949944",
   appId: "1:447326949944:web:6a3bc2d4effaadae464ccd",
-  measurementId: "G-H9V3VZ2PSR"
+  measurementId: "G-H9V3VZ2PSR",
 };
 
 // Initialize Firebase
