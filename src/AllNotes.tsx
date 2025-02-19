@@ -1,8 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { StickyNote, Search, Building2, Clock, ChevronDown, ChevronUp, EyeOff, Eye, Edit2, Trash2, Filter } from 'lucide-react';
-import { supabase } from './lib/supabase';
-import NoteModal from './components/modals/NoteModal';
-import DeleteConfirmationModal from './components/modals/DeleteConfirmationModal';
+import { useState, useEffect } from "react";
+import {
+  StickyNote,
+  Search,
+  Building2,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  EyeOff,
+  Eye,
+  Edit2,
+  Trash2,
+} from "lucide-react";
+import { supabase } from "./lib/supabase";
+import NoteModal from "./components/modals/NoteModal";
+import DeleteConfirmationModal from "./components/modals/DeleteConfirmationModal";
 
 interface CustomerNote {
   note_id: string;
@@ -23,16 +34,18 @@ function formatDate(date: string) {
 
 function getPreviewText(content: string, maxLength: number = 280) {
   if (content.length <= maxLength) return content;
-  return content.substring(0, maxLength).trim() + '...';
+  return content.substring(0, maxLength).trim() + "...";
 }
 
 function AllNotes() {
   const [notes, setNotes] = useState<CustomerNote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState<CustomerNote | undefined>(undefined);
+  const [selectedNote, setSelectedNote] = useState<CustomerNote | undefined>(
+    undefined
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<CustomerNote | null>(null);
   const [showHiddenNotes, setShowHiddenNotes] = useState(false);
@@ -40,8 +53,9 @@ function AllNotes() {
   const fetchNotes = async () => {
     try {
       let query = supabase
-        .from('customer_notes')
-        .select(`
+        .from("customer_notes")
+        .select(
+          `
           note_id,
           content,
           created_at,
@@ -52,12 +66,13 @@ function AllNotes() {
             customer_name,
             account_number
           )
-        `)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .order("created_at", { ascending: false });
 
       // Only apply hidden filter if not showing all notes
       if (!showHiddenNotes) {
-        query = query.eq('hidden', false);
+        query = query.eq("hidden", false);
       }
 
       const { data, error } = await query;
@@ -65,7 +80,7 @@ function AllNotes() {
       if (error) throw error;
       setNotes(data || []);
     } catch (error) {
-      console.error('Error fetching notes:', error);
+      console.error("Error fetching notes:", error);
     } finally {
       setLoading(false);
     }
@@ -76,7 +91,7 @@ function AllNotes() {
   }, [showHiddenNotes]); // Refetch when visibility toggle changes
 
   const toggleNoteExpansion = (noteId: string) => {
-    setExpandedNotes(prev => {
+    setExpandedNotes((prev) => {
       const next = new Set(prev);
       if (next.has(noteId)) {
         next.delete(noteId);
@@ -102,36 +117,36 @@ function AllNotes() {
 
     try {
       const { error } = await supabase
-        .from('customer_notes')
+        .from("customer_notes")
         .delete()
-        .eq('note_id', noteToDelete.note_id);
+        .eq("note_id", noteToDelete.note_id);
 
       if (error) throw error;
 
       await fetchNotes();
     } catch (error) {
-      console.error('Error deleting note:', error);
-      alert('Failed to delete note. Please try again.');
+      console.error("Error deleting note:", error);
+      alert("Failed to delete note. Please try again.");
     }
   };
 
   const toggleNoteVisibility = async (note: CustomerNote) => {
     try {
       const { error } = await supabase
-        .from('customer_notes')
+        .from("customer_notes")
         .update({ hidden: !note.hidden })
-        .eq('note_id', note.note_id);
+        .eq("note_id", note.note_id);
 
       if (error) throw error;
 
       await fetchNotes();
     } catch (error) {
-      console.error('Error toggling note visibility:', error);
-      alert('Failed to update note visibility. Please try again.');
+      console.error("Error toggling note visibility:", error);
+      alert("Failed to update note visibility. Please try again.");
     }
   };
 
-  const filteredNotes = notes.filter(note => {
+  const filteredNotes = notes.filter((note) => {
     const searchLower = searchTerm.toLowerCase();
     return (
       note.content.toLowerCase().includes(searchLower) ||
@@ -171,12 +186,12 @@ function AllNotes() {
               onClick={() => setShowHiddenNotes(!showHiddenNotes)}
               className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                 showHiddenNotes
-                  ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               <EyeOff className="w-4 h-4" />
-              {showHiddenNotes ? 'Showing All Notes' : 'Hidden Notes Filtered'}
+              {showHiddenNotes ? "Showing All Notes" : "Hidden Notes Filtered"}
             </button>
             <div className="relative">
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -196,15 +211,17 @@ function AllNotes() {
             <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
               <StickyNote className="w-12 h-12 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-500">
-                {searchTerm ? 'No notes found matching your search.' : 'No notes have been added yet.'}
+                {searchTerm
+                  ? "No notes found matching your search."
+                  : "No notes have been added yet."}
               </p>
             </div>
           ) : (
             filteredNotes.map((note) => (
-              <div 
-                key={note.note_id} 
+              <div
+                key={note.note_id}
                 className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden ${
-                  note.hidden ? 'opacity-75' : ''
+                  note.hidden ? "opacity-75" : ""
                 }`}
               >
                 {/* Note Header */}
@@ -240,8 +257,8 @@ function AllNotes() {
                 <div className="px-6 py-4">
                   <div className="relative">
                     <p className="text-gray-800 whitespace-pre-wrap">
-                      {expandedNotes.has(note.note_id) 
-                        ? note.content 
+                      {expandedNotes.has(note.note_id)
+                        ? note.content
                         : getPreviewText(note.content)}
                     </p>
                     {note.content.length > 280 && (
@@ -267,13 +284,21 @@ function AllNotes() {
                     <button
                       onClick={() => toggleNoteVisibility(note)}
                       className={`p-1.5 rounded-md transition-colors ${
-                        note.hidden 
-                          ? 'text-gray-400 hover:text-blue-600 hover:bg-blue-50' 
-                          : 'text-gray-400 hover:text-orange-600 hover:bg-orange-50'
+                        note.hidden
+                          ? "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                          : "text-gray-400 hover:text-orange-600 hover:bg-orange-50"
                       }`}
-                      title={note.hidden ? "Show in all notes" : "Hide from all notes"}
+                      title={
+                        note.hidden
+                          ? "Show in all notes"
+                          : "Hide from all notes"
+                      }
                     >
-                      {note.hidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      {note.hidden ? (
+                        <Eye className="w-4 h-4" />
+                      ) : (
+                        <EyeOff className="w-4 h-4" />
+                      )}
                     </button>
                     <button
                       onClick={() => handleEditNote(note)}
@@ -303,11 +328,15 @@ function AllNotes() {
             setIsNoteModalOpen(false);
             setSelectedNote(undefined);
           }}
-          customerId={selectedNote?.customers.customer_id || ''}
-          existingNote={selectedNote ? {
-            note_id: selectedNote.note_id,
-            content: selectedNote.content
-          } : undefined}
+          customerId={selectedNote?.customers.customer_id || ""}
+          existingNote={
+            selectedNote
+              ? {
+                  note_id: selectedNote.note_id,
+                  content: selectedNote.content,
+                }
+              : undefined
+          }
           onSuccess={fetchNotes}
         />
 
