@@ -1,23 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, Search, Building2, CheckSquare, Calendar, 
-  MapPin, ChevronDown, ChevronUp, ArrowUpDown, Filter 
-} from 'lucide-react';
-import { supabase } from './lib/supabase';
-import type { Customer } from './types/customer';
+import React, { useState, useEffect } from "react";
+import {
+  Users,
+  Search,
+  Building2,
+  CheckSquare,
+  Calendar,
+  MapPin,
+  ChevronDown,
+  ChevronUp,
+  ArrowUpDown,
+  Filter,
+} from "lucide-react";
+import { supabase } from "./lib/supabase";
+import type { Customer } from "./types/customer";
 
-type SortField = 'name' | 'date' | 'territory';
+type SortField = "name" | "date" | "territory";
 
 function ContactProgress() {
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<SortField>('date');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [selectedTerritory, setSelectedTerritory] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [selectedTerritory, setSelectedTerritory] = useState<string>("");
   const [territories, setTerritories] = useState<string[]>([]);
-  const [filter, setFilter] = useState<'all' | 'introduced' | 'visited'>('all');
-  const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<
+    "all" | "introduced" | "visited" | "not_introduced" | "not_visited"
+  >("all");
+  const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     fetchCustomers();
@@ -26,8 +38,9 @@ function ContactProgress() {
   const fetchCustomers = async () => {
     try {
       const { data, error } = await supabase
-        .from('customers')
-        .select(`
+        .from("customers")
+        .select(
+          `
           customer_id,
           customer_name,
           account_number,
@@ -46,21 +59,22 @@ function ContactProgress() {
             phone_number,
             email
           )
-        `)
-        .or('introduced_myself.eq.true,visited_account.eq.true')
-        .order('customer_name');
+        `
+        )
+        .or("introduced_myself.eq.true,visited_account.eq.true")
+        .order("customer_name");
 
       if (error) throw error;
 
       if (data) {
         setCustomers(data);
         const uniqueTerritories = Array.from(
-          new Set(data.map(c => c.territory).filter(Boolean))
+          new Set(data.map((c) => c.territory).filter(Boolean))
         ).sort();
         setTerritories(uniqueTerritories);
       }
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      console.error("Error fetching customers:", error);
     } finally {
       setLoading(false);
     }
@@ -68,15 +82,15 @@ function ContactProgress() {
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(current => current === 'desc' ? 'asc' : 'desc');
+      setSortDirection((current) => (current === "desc" ? "asc" : "desc"));
     } else {
       setSortField(field);
-      setSortDirection('desc');
+      setSortDirection("desc");
     }
   };
 
   const toggleCustomerExpansion = (customerId: string) => {
-    setExpandedCustomers(prev => {
+    setExpandedCustomers((prev) => {
       const next = new Set(prev);
       if (next.has(customerId)) {
         next.delete(customerId);
@@ -92,22 +106,27 @@ function ContactProgress() {
 
     // Apply territory filter
     if (selectedTerritory) {
-      filtered = filtered.filter(c => c.territory === selectedTerritory);
+      filtered = filtered.filter((c) => c.territory === selectedTerritory);
     }
 
     // Apply contact status filter
-    if (filter === 'introduced') {
-      filtered = filtered.filter(c => c.introduced_myself);
-    } else if (filter === 'visited') {
-      filtered = filtered.filter(c => c.visited_account);
+    if (filter === "introduced") {
+      filtered = filtered.filter((c) => c.introduced_myself);
+    } else if (filter === "visited") {
+      filtered = filtered.filter((c) => c.visited_account);
+    } else if (filter === "not_introduced") {
+      filtered = filtered.filter((c) => !c.introduced_myself);
+    } else if (filter === "not_visited") {
+      filtered = filtered.filter((c) => !c.visited_account);
     }
 
     // Apply search
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(c => 
-        c.customer_name.toLowerCase().includes(search) ||
-        c.account_number.toLowerCase().includes(search)
+      filtered = filtered.filter(
+        (c) =>
+          c.customer_name.toLowerCase().includes(search) ||
+          c.account_number.toLowerCase().includes(search)
       );
     }
 
@@ -115,26 +134,33 @@ function ContactProgress() {
     return filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
-        case 'name':
+        case "name":
           comparison = a.customer_name.localeCompare(b.customer_name);
           break;
-        case 'date':
-          const aDate = a.introduced_myself_at || a.visited_account_at || '';
-          const bDate = b.introduced_myself_at || b.visited_account_at || '';
+        case "date":
+          const aDate = a.introduced_myself_at || a.visited_account_at || "";
+          const bDate = b.introduced_myself_at || b.visited_account_at || "";
           comparison = aDate.localeCompare(bDate);
           break;
-        case 'territory':
-          comparison = (a.territory || '').localeCompare(b.territory || '');
+        case "territory":
+          comparison = (a.territory || "").localeCompare(b.territory || "");
           break;
       }
-      return sortDirection === 'desc' ? -comparison : comparison;
+      return sortDirection === "desc" ? -comparison : comparison;
     });
-  }, [customers, selectedTerritory, filter, searchTerm, sortField, sortDirection]);
+  }, [
+    customers,
+    selectedTerritory,
+    filter,
+    searchTerm,
+    sortField,
+    sortDirection,
+  ]);
 
   const stats = React.useMemo(() => {
     const total = customers.length;
-    const introduced = customers.filter(c => c.introduced_myself).length;
-    const visited = customers.filter(c => c.visited_account).length;
+    const introduced = customers.filter((c) => c.introduced_myself).length;
+    const visited = customers.filter((c) => c.visited_account).length;
     return { total, introduced, visited };
   }, [customers]);
 
@@ -170,7 +196,9 @@ function ContactProgress() {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-gray-500" />
-            <h3 className="text-sm font-medium text-gray-700">Total Accounts</h3>
+            <h3 className="text-sm font-medium text-gray-700">
+              Total Accounts
+            </h3>
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
         </div>
@@ -180,7 +208,9 @@ function ContactProgress() {
             <CheckSquare className="w-5 h-5 text-green-600" />
             <h3 className="text-sm font-medium text-green-700">Introduced</h3>
           </div>
-          <p className="text-2xl font-bold text-green-700">{stats.introduced}</p>
+          <p className="text-2xl font-bold text-green-700">
+            {stats.introduced}
+          </p>
           <p className="text-sm text-green-600 mt-1">
             {((stats.introduced / stats.total) * 100).toFixed(1)}% of accounts
           </p>
@@ -230,12 +260,23 @@ function ContactProgress() {
 
           <select
             value={filter}
-            onChange={(e) => setFilter(e.target.value as 'all' | 'introduced' | 'visited')}
+            onChange={(e) =>
+              setFilter(
+                e.target.value as
+                  | "all"
+                  | "introduced"
+                  | "visited"
+                  | "not_introduced"
+                  | "not_visited"
+              )
+            }
             className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
           >
             <option value="all">All Contacts</option>
             <option value="introduced">Introduced Only</option>
             <option value="visited">Visited Only</option>
+            <option value="not_introduced">Not Introduced</option>
+            <option value="not_visited">Not Visited</option>
           </select>
         </div>
       </div>
@@ -244,33 +285,33 @@ function ContactProgress() {
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-500">Sort by:</span>
         <button
-          onClick={() => toggleSort('name')}
+          onClick={() => toggleSort("name")}
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
-            sortField === 'name'
-              ? 'bg-gray-100 text-gray-900'
-              : 'text-gray-600 hover:text-gray-900'
+            sortField === "name"
+              ? "bg-gray-100 text-gray-900"
+              : "text-gray-600 hover:text-gray-900"
           }`}
         >
           Name
           <ArrowUpDown className="w-4 h-4" />
         </button>
         <button
-          onClick={() => toggleSort('date')}
+          onClick={() => toggleSort("date")}
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
-            sortField === 'date'
-              ? 'bg-gray-100 text-gray-900'
-              : 'text-gray-600 hover:text-gray-900'
+            sortField === "date"
+              ? "bg-gray-100 text-gray-900"
+              : "text-gray-600 hover:text-gray-900"
           }`}
         >
           Date
           <ArrowUpDown className="w-4 h-4" />
         </button>
         <button
-          onClick={() => toggleSort('territory')}
+          onClick={() => toggleSort("territory")}
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
-            sortField === 'territory'
-              ? 'bg-gray-100 text-gray-900'
-              : 'text-gray-600 hover:text-gray-900'
+            sortField === "territory"
+              ? "bg-gray-100 text-gray-900"
+              : "text-gray-600 hover:text-gray-900"
           }`}
         >
           Territory
@@ -283,7 +324,9 @@ function ContactProgress() {
         {filteredAndSortedCustomers.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Accounts Found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Accounts Found
+            </h3>
             <p className="text-gray-500">
               {searchTerm
                 ? "No accounts match your search criteria"
@@ -333,7 +376,9 @@ function ContactProgress() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Introduction Status */}
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700">Introduction Status</h4>
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Introduction Status
+                      </h4>
                       {customer.introduced_myself ? (
                         <div className="bg-green-50 text-green-700 rounded-lg p-3">
                           <div className="flex items-center gap-2">
@@ -343,11 +388,15 @@ function ContactProgress() {
                           {customer.introduced_myself_at && (
                             <div className="flex items-center gap-1 mt-1 text-sm">
                               <Calendar className="w-4 h-4" />
-                              {new Date(customer.introduced_myself_at).toLocaleDateString()}
+                              {new Date(
+                                customer.introduced_myself_at
+                              ).toLocaleDateString()}
                             </div>
                           )}
                           {customer.introduced_myself_by && (
-                            <p className="text-sm mt-1">By: {customer.introduced_myself_by}</p>
+                            <p className="text-sm mt-1">
+                              By: {customer.introduced_myself_by}
+                            </p>
                           )}
                         </div>
                       ) : (
@@ -359,7 +408,9 @@ function ContactProgress() {
 
                     {/* Visit Status */}
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700">Visit Status</h4>
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Visit Status
+                      </h4>
                       {customer.visited_account ? (
                         <div className="bg-blue-50 text-blue-700 rounded-lg p-3">
                           <div className="flex items-center gap-2">
@@ -369,11 +420,15 @@ function ContactProgress() {
                           {customer.visited_account_at && (
                             <div className="flex items-center gap-1 mt-1 text-sm">
                               <Calendar className="w-4 h-4" />
-                              {new Date(customer.visited_account_at).toLocaleDateString()}
+                              {new Date(
+                                customer.visited_account_at
+                              ).toLocaleDateString()}
                             </div>
                           )}
                           {customer.visited_account_by && (
-                            <p className="text-sm mt-1">By: {customer.visited_account_by}</p>
+                            <p className="text-sm mt-1">
+                              By: {customer.visited_account_by}
+                            </p>
                           )}
                         </div>
                       ) : (
@@ -387,7 +442,9 @@ function ContactProgress() {
                   {/* Contacts */}
                   {customer.contacts && customer.contacts.length > 0 && (
                     <div className="mt-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Contacts</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Contacts
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {customer.contacts.map((contact) => (
                           <div
@@ -400,9 +457,13 @@ function ContactProgress() {
                                 {contact.contact_name}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-500">{contact.role}</p>
+                            <p className="text-sm text-gray-500">
+                              {contact.role}
+                            </p>
                             <div className="mt-2 space-y-1 text-sm">
-                              <p className="text-gray-600">{contact.phone_number}</p>
+                              <p className="text-gray-600">
+                                {contact.phone_number}
+                              </p>
                               <p className="text-gray-600">{contact.email}</p>
                             </div>
                           </div>
