@@ -61,7 +61,7 @@ function ContactProgress() {
           )
         `
         )
-        .or("introduced_myself.eq.true,visited_account.eq.true")
+        // .or("introduced_myself.eq.true,visited_account.eq.true")
         .order("customer_name");
 
       if (error) throw error;
